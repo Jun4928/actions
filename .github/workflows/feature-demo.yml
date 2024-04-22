@@ -29,5 +29,5 @@ jobs:
     runs-on: ubuntu-latest
     needs: explore-github-action
     steps:
-      - run: echo ${{ needs.explore-github-action }}
+      - run: echo ${{ needs.explore-github-action.outputs.branch-name }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
