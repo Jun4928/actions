@@ -3,7 +3,7 @@ local_branch_name="$(git rev-parse --abbrev-ref HEAD)"
 
 valid_branch_regex='^((feature)\-[a-z0-9\-]+)$'
 
-invalid_message="Length must be less than 10 and accepts only lower case and numbers"
+invalid_message="feature-branch rule: length must be less than 10 and accepts only lower case and numbers"
 
 if [[ $local_branch_name -ge 10 ]]; then
     echo "$invalid_message"
