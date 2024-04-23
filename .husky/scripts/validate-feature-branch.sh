@@ -8,8 +8,8 @@ fi
 valid_length=25
 valid_branch_regex='^((feature)\-[a-z0-9\-]+)$'
 
-invalid_length="[$BRANCH_NAME]: length must be less than $valid_length, the length is ${#BRANCH_NAME}"
-invalid_message="[$BRANCH_NAME]: accepts only lower case and numbers"
+invalid_length="[$BRANCH_NAME]: feature branch length must be less than $valid_length, the length is ${#BRANCH_NAME}"
+invalid_message="[$BRANCH_NAME]: feature branch accepts only lower case and numbers"
 
 if [[ ${#BRANCH_NAME} -ge valid_length ]]; then
     echo "$invalid_length"
