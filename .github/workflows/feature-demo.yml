@@ -9,6 +9,9 @@ on:
 jobs:
   explore-github-action:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./scripts
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🔎 The name of your branch is ${{ github.head_ref }}"
@@ -18,8 +21,7 @@ jobs:
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - id: branch-name 
         run: |
-          BRANCH_NAME=${{ github.head_ref }}
-          echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          ./casbab.sh kebab BRANCH_NAME=${{ github.head_ref }} >> "$GITHUB_OUTPUT"
       - run: echo "🍏 This job's status is ${{ job.status }}."
     outputs:
         branch-name: ${{ steps.branch-name.outputs.branch-name }}

@@ -11,13 +11,13 @@ detect() {
   # Return normalized string, all lower and with spaces as separators
   arg=( "${@:-}" )
   helper=""
-  for i in '_' '-' ' '; do
+  for i in '_' ; do
     if [[ ${arg[*]} == *$i* ]]; then
       helper="yes"
       echo "${arg[*]}" | tr '[:upper:]' '[:lower:]' | tr -s "${i}" ' '
     fi
   done
-  # If '_','-' and ' ' are not used as a separator try by case
+  # If '_' is not used as a separator try by case
   if [[ -z $helper ]] && [[ ${arg[0]} != '' ]]; then
     dif_case "${@:-}" | tr '[:upper:]' '[:lower:]'
   fi
@@ -51,15 +51,7 @@ dif_case() {
   echo "${helper}"
 }
 
-first_up() {
-  # Set first letter upper in a single word
-  helper=${1}
-  echo "$(tr '[:lower:]' '[:upper:]' <<< "${helper:0:1}")${helper:1}"
-}
-
-
 replace() {
-  # Read from stdin and replace ' ' with $1
   cat | tr -s ' ' "${1}"
 }
 
@@ -73,17 +65,7 @@ kebab() {
 #/
 
 if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
-
   arg=( "${@:2}" )
-
-  if [[ -t 0 && -z ${arg[*]} ]]; then
-    if [[ ${#arg[*]} -eq 1 ]]; then
-      arg[0]=' '
-    else
-      usage
-    fi 
-  fi
-  
   arg=( ${arg:-$(cat -)} )
 
   case ${1:-} in
