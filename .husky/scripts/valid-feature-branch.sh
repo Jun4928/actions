@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
 
-if [[ ! $BRANCH_NAME = "asd" ]]; then
+if [[ ! $BRANCH_NAME == "feature-"* ]]; then
     exit 0
 fi
 
-valid_length=20
+valid_length=25
 valid_branch_regex='^((feature)\-[a-z0-9\-]+)$'
 
 invalid_length="[$BRANCH_NAME]: length must be less than $valid_length, the length is ${#BRANCH_NAME}"
