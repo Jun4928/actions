@@ -21,4 +21,5 @@ if [[ ! $BRANCH_NAME =~ $valid_branch_regex ]]; then
     exit 1
 fi
 
+echo "$BRANCH_NAME is ready to go 🤘"
 exit 0
