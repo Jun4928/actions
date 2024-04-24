@@ -2,9 +2,10 @@ name: GitHub Actions Demo
 run-name: ${{ github.actor }} 🚀
 
 on:
-  pull_request_target:
-    branches: ["main"]
-    types: [opened, synchronize]
+  # pull_request_target:
+  #   branches: ["main"]
+  #   types: [opened, synchronize]
+  workflow_dispatch:
 
 jobs:
   explore-github-action:
