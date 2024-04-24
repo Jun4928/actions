@@ -9,7 +9,7 @@ on:
 
 jobs:
   explore-github-action:
-    if: startsWith(github.head_ref, 'feature-')
+    # if: startsWith(github.head_ref, 'feature-')
     runs-on: ubuntu-latest
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
