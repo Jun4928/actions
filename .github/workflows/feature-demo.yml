@@ -23,7 +23,7 @@ jobs:
         run: |
           SANITISED_BRANCH_NAME=$(./scripts/casbab.sh kebab ${{ github.head_ref || github.ref_name }})
           echo "branch-name=$SANITISED_BRANCH_NAME" >> "$GITHUB_OUTPUT"
-      - run: echo "🍏 Well done ${{ steps.branch-name.outputs.branch-name }}"
+      - run: echo "✅ ${{ steps.branch-name.outputs.branch-name }} is safe"
     outputs:
         branch-name: ${{ steps.branch-name.outputs.branch-name }}
 
