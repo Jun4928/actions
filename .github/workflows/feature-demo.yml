@@ -2,18 +2,18 @@ name: GitHub Actions Demo
 run-name: ${{ github.actor }} 🚀
 
 on:
-  # pull_request_target:
-  #   branches: ["main"]
-  #   types: [opened, synchronize]
+  pull_request_target:
+    branches: ["main"]
+    types: [opened, synchronize]
   workflow_dispatch:
 
 jobs:
   explore-github-action:
-    # if: startsWith(github.head_ref, 'feature-')
+    if: startsWith(github.head_ref || github.ref_name, 'feature-')
     runs-on: ubuntu-latest
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🔎 The name of your branch is ${{ github.head_ref }}"
+      - run: echo "🔎 The name of your branch is ${{ github.head_ref || github.ref_name }}"
       - name: Check out repository code
         uses: actions/checkout@v4
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
@@ -21,7 +21,7 @@ jobs:
       - name: make branch-name as kebab-case
         id: branch-name 
         run: |
-          SANITISED_BRANCH_NAME=$(./scripts/casbab.sh kebab ${{ github.head_ref }})
+          SANITISED_BRANCH_NAME=$(./scripts/casbab.sh kebab ${{ github.head_ref || github.ref_name }})
           echo "branch-name=$SANITISED_BRANCH_NAME" >> "$GITHUB_OUTPUT"
       - run: echo "🍏 This job's status is ${{ job.status }}."
     outputs:
