@@ -8,6 +8,7 @@ on:
 
 jobs:
   explore-github-action:
+    if: startsWith(github.head_ref, 'feature-')
     runs-on: ubuntu-latest
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -26,7 +27,6 @@ jobs:
         branch-name: ${{ steps.branch-name.outputs.branch-name }}
 
   next:
-    if: startsWith(github.head_ref, 'feature-')
     name: next-step
     runs-on: ubuntu-latest
     needs: explore-github-action
