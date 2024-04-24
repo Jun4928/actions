@@ -3,21 +3,22 @@
 set -euo pipefail
 
 #/
+#/ Refernece:
+#/ https://github.com/vandot/casbab/blob/master/casbab.sh
+#/
 #/ Usage: 
-#/ ./casbab.sh option [string]
+#/ ./casbab.sh kebab [string]
 #/ 
 
 detect() {
   # Return normalized string, all lower and with spaces as separators
   arg=( "${@:-}" )
   helper=""
-  for i in '_' ; do
-    if [[ ${arg[*]} == *$i* ]]; then
-      helper="yes"
-      echo "${arg[*]}" | tr '[:upper:]' '[:lower:]' | tr -s "${i}" ' '
-    fi
-  done
-  # If '_' is not used as a separator try by case
+  if [[ ${arg[*]} == *-* ]] || [[ ${arg[*]} == *_* ]]; then
+    helper="yes"
+    echo "${arg[*]}" | tr '[:upper:]' '[:lower:]' | tr -s "_" ' '
+  fi
+  # If '_','-' and ' ' are not used as a separator try by case
   if [[ -z $helper ]] && [[ ${arg[0]} != '' ]]; then
     dif_case "${@:-}" | tr '[:upper:]' '[:lower:]'
   fi

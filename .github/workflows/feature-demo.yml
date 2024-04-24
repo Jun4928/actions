@@ -19,7 +19,8 @@ jobs:
       - name: make branch-name as kebab-case
         id: branch-name 
         run: |
-          echo "branch-name=./scripts/casbab.sh kebab ${{ github.head_ref }}" >> "$GITHUB_OUTPUT"
+          SANITISED_BRANCH_NAME=$(./scripts/casbab.sh kebab ${{ github.head_ref }})
+          echo "branch-name=$SANITISED_BRANCH_NAME" >> "$GITHUB_OUTPUT"
       - run: echo "🍏 This job's status is ${{ job.status }}."
     outputs:
         branch-name: ${{ steps.branch-name.outputs.branch-name }}
