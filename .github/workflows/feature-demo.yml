@@ -29,10 +29,18 @@ jobs:
     outputs:
         branch-name: ${{ steps.branch-name.outputs.branch-name }}
 
-  next:
-    name: next-step
+  deploy-infrastructure:
     runs-on: ubuntu-latest
+    name: AWS CDK deployment
     needs: explore-github-action
     steps:
-      - run: echo ${{ needs.explore-github-action.outputs.branch-name }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node Environment
+        uses: actions/setup-node@v4
+        with: 
+          node-version: '20'
+
+      - name: Deploy AWS CDK stack
+        run: npx cdk deploy --context stackName=${{ needs.explore-github-action.outputs.branch-name }} --require-approval never
