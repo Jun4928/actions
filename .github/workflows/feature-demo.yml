@@ -41,6 +41,9 @@ jobs:
         uses: actions/setup-node@v4
         with: 
           node-version: '20'
+      
+      - name: Install cdk command
+        run: npm install -g aws-cdk
 
       - name: Deploy AWS CDK stack
-        run: npx cdk deploy --context stackName=${{ needs.explore-github-action.outputs.branch-name }} --require-approval never
+        run: cdk deploy --context stackName=${{ needs.explore-github-action.outputs.branch-name }} --require-approval never
