@@ -3,14 +3,16 @@ name: Deploy Reused
 on:
   workflow_call:
     secrets:
-      my-test-secet:
+      my-test-secret:
         required: true
 
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      TEST: ${{ secrets.my-test-secret }}
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "test env is ${{ secrets.my-test-secet }}"
+      - run: echo "test env is ${{ env.TEST }}"
 
