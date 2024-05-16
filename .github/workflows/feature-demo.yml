@@ -9,7 +9,6 @@ on:
 
 jobs:
   explore-github-action:
-    if: startsWith(github.head_ref || github.ref_name, 'feature-')
     runs-on: ubuntu-latest
     env:
       BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -28,22 +27,30 @@ jobs:
       - run: echo "✅ ${{ steps.branch-name.outputs.branch-name }} is safe"
     outputs:
         branch-name: ${{ steps.branch-name.outputs.branch-name }}
-
-  deploy-infrastructure:
-    runs-on: ubuntu-latest
-    name: AWS CDK deployment
+    
+  deploy-test:
+    name: test test
     needs: explore-github-action
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
+    uses: ./.github/workflows/deploy-1.yml
+    secrets:
+      my-test-secet: ${{ secrets.MY_TEST_SECRET }}
       
-      - name: Setup Node Environment
-        uses: actions/setup-node@v4
-        with: 
-          node-version: '20'
-      
-      - name: Install cdk command
-        run: npm install -g aws-cdk
 
-      - name: Deploy AWS CDK stack
-        run: cdk deploy --context stackName=${{ needs.explore-github-action.outputs.branch-name }} --require-approval never
+  # deploy-infrastructure:
+  #   runs-on: ubuntu-latest
+  #   name: AWS CDK deployment
+  #   needs: explore-github-action
+  #   steps:
+  #     - name: Check out repository code
+  #       uses: actions/checkout@v4
+      
+  #     - name: Setup Node Environment
+  #       uses: actions/setup-node@v4
+  #       with: 
+  #         node-version: '20'
+      
+  #     - name: Install cdk command
+  #       run: npm install -g aws-cdk
+
+  #     - name: Deploy AWS CDK stack
+  #       run: cdk deploy --context stackName=${{ needs.explore-github-action.outputs.branch-name }} --require-approval never

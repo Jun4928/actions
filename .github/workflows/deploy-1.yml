@@ -1,0 +1,16 @@
+name: Deploy Reused
+
+on:
+  workflow_call:
+    secrets:
+      my-test-secet:
+        required: true
+
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "test env is ${{ secrets.my-test-secet }}"
+
