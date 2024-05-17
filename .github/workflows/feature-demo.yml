@@ -32,9 +32,7 @@ jobs:
     name: test test
     needs: explore-github-action
     uses: ./.github/workflows/deploy-1.yml
-    secrets:
-      my-test-secret: ${{ secrets.MY_TEST_SECRET }}
-      
+    secrets: inherit
 
   # deploy-infrastructure:
   #   runs-on: ubuntu-latest
