@@ -2,10 +2,6 @@ name: Deploy Reused
 
 on:
   workflow_call:
-    secrets:
-      my-test-secret:
-        required: true
-
 
 jobs:
   check:
