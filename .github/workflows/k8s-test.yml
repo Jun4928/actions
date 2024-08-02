@@ -1,0 +1,22 @@
+name: Deploy backend
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-be-k8-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.22.17'
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: 'v3.7.0'
