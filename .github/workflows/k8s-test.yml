@@ -4,6 +4,14 @@ run-name: |
  
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+        - staging
+        - production
 
 concurrency:
   group: deploy-be-k8-${{ github.workflow }}-${{ github.ref }}
