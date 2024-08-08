@@ -1,5 +1,7 @@
 name: Deploy backend
-
+run-name: |
+ [gh-${{ github.run_id }}] ${{ github.actor }} is deploying changes from ${{ github.head_ref || github.ref_name }} on ${{ inputs.environment }} 🧘‍♂️
+ 
 on:
   workflow_dispatch:
 
