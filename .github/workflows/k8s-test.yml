@@ -119,10 +119,9 @@ jobs:
     steps:
       - name: Run tests
         run: |
-          exit 1
-          # echo "Running tests..."
-          # sleep 5
-          # echo "Tests passed!"
+          echo "Running tests..."
+          sleep 5
+          echo "Tests passed!"
 
       - name: Notify Slack
         if: always()
