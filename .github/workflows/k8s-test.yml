@@ -56,7 +56,7 @@ jobs:
                           },
                           {
                             "type": "mrkdwn",
-                            "text": "*Triggered by\n${{ github.actor }}"
+                            "text": "*Triggered by*\n${{ github.actor }}"
                           },
                         ]
                       },
@@ -221,8 +221,15 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+    
+  update-slack-notification:
+    needs: [start-deployment, env-setup, run-tests, release-be, release-fe]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
       - name: Update Slack Notification
         uses: slackapi/slack-github-action@v1.26.0
+        if: always()
         with:
           channel-id: 'C07G8T93BQT'
           update-ts: ${{ needs.start-deployment.outputs.slack_message_ts }}
@@ -250,7 +257,7 @@ jobs:
                         },
                         {
                           "type": "mrkdwn",
-                          "text": "*Triggered by\n${{ github.actor }}"
+                          "text": "*Triggered by*\n${{ github.actor }}"
                         },
                       ]
                     },
