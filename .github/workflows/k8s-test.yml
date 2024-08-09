@@ -12,6 +12,12 @@ on:
         options:
         - staging
         - production
+      run-e2e:
+        required: true
+        type: boolean
+        description: 'Run e2e tests'
+        default: true
+
 
 concurrency:
   group: deploy-be-k8-${{ github.workflow }}-${{ github.ref }}
