@@ -22,6 +22,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+  
 jobs:
   start-deployment:
     runs-on: ubuntu-latest
@@ -32,18 +33,46 @@ jobs:
         with:
           channel-id: 'C07G8T93BQT'
           payload: |
-            {
-              "text": "Deployment started for ${{ inputs.environment }} environment",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Deployment started*\nEnvironment: ${{ inputs.environment }}\nBranch: ${{ github.head_ref || github.ref_name }}\nTriggered by: ${{ github.actor }}"
+              {
+                "text": "🔄 Deployment In Progress",
+                "attachments": [
+                  {
+                    "color": "#808080",
+                    "blocks": [
+                      {
+                        "type": "section",
+                        "fields": [
+                          {
+                            "type": "mrkdwn",
+                            "text": "*Repo*\n${{ github.repository }}"
+                          },
+                          {
+                            "type": "mrkdwn",
+                            "text": "*Env*\n${{ inputs.environment }}"
+                          },
+                          {
+                            "type": "mrkdwn",
+                            "text": "*Branch*\n${{ github.head_ref || github.ref_name }}"
+                          },
+                          {
+                            "type": "mrkdwn",
+                            "text": "*Triggered by\n${{ github.actor }}"
+                          },
+                        ]
+                      },
+                      {
+                        "type": "section",
+                        "fields": [
+                          {
+                            "type": "mrkdwn",
+                            "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                          }
+                        ]
+                      },
+                    ]
                   }
-                }
-              ]
-            }
+                ]
+              }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
     outputs:
@@ -73,11 +102,10 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "${{ job.status == 'success' && '✅' || '🚨' }} Environment setup ${{ job.status }}",
               "attachments": [
                 {
                   "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "text": "│ Environment setup"
+                  "text": "${{ job.status == 'success' && '✅' || '🚨' }} Environment setup ${{ job.status }}"
                 }
               ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
@@ -103,11 +131,10 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "${{ job.status == 'success' && '✅' || '🚨' }} Run tests ${{ job.status }}",
               "attachments": [
                 {
                   "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "text": "│ Run tests"
+                  "text": "${{ job.status == 'success' && '✅' || '🚨' }} Run tests ${{ job.status }}"
                 }
               ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
@@ -133,11 +160,10 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release BE ${{ job.status }}",
               "attachments": [
                 {
                   "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "text": "│ Release BE"
+                  "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release BE ${{ job.status }}"
                 }
               ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
@@ -163,11 +189,10 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release FE ${{ job.status }}",
               "attachments": [
                 {
                   "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "text": "│ Release FE"
+                  "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release FE ${{ job.status }}"
                 }
               ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
@@ -186,14 +211,62 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "✅ Deployment completed successfully. Please check the pods for final confirmation.",
               "attachments": [
                 {
                   "color": "#36a64f",
-                  "text": "│ Deployment completed"
+                  "text": "✅ Deployment completed successfully. Please check the pods for final confirmation."
                 }
               ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+      - name: Update Slack Notification
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: 'C07G8T93BQT'
+          update-ts: ${{ needs.start-deployment.outputs.slack_message_ts }}
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅ Deployment done successfully' || job.status == 'failure' && '🚨 Deployment failed' || '🔄 Deployment In Progress' }} for ${{ inputs.environment }} environment",
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#ff0000' || '#808080' }}",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Repo*\n${{ github.repository }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Env*\n${{ inputs.environment }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Branch*\n${{ github.head_ref || github.ref_name }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Triggered by\n${{ github.actor }}"
+                        },
+                      ]
+                    },
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                        }
+                      ]
+                    },
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+
