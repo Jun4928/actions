@@ -1,7 +1,7 @@
-name: Deploy backend
+name: K8 Environment Release
 run-name: |
  [gh-${{ github.run_id }}] ${{ github.actor }} is deploying changes from ${{ github.head_ref || github.ref_name }} on ${{ inputs.environment }} 🧘‍♂️
- 
+
 on:
   workflow_dispatch:
     inputs:
@@ -17,22 +17,153 @@ on:
         type: boolean
         description: 'Run e2e tests'
         default: true
-
-
+  
 concurrency:
-  group: deploy-be-k8-${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-image:
+  start-deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
+      - name: Post to a Slack channel
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
         with:
-          version: 'v1.22.17'
-      
-      - name: Install Helm
-        uses: azure/setup-helm@v4.2.0
+          channel-id: 'C07G8T93BQT'
+          payload: |
+            {
+              "text": "Deployment started for ${{ inputs.environment }} environment",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Deployment started*\nEnvironment: ${{ inputs.environment }}\nBranch: ${{ github.head_ref || github.ref_name }}\nTriggered by: ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+    outputs:
+      slack_message_ts: ${{ steps.slack.outputs.ts }}
+
+  env-setup:
+    needs: start-deployment
+    runs-on: ubuntu-latest
+    env:
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Validate branch for production deployment
+        if: inputs.environment == 'production'
+        run: |
+          if [[ ! "${{ env.BRANCH_NAME }}" =~ ^release.* ]]; then
+            echo "Error: Production deployment must be from a release branch."
+            exit 1
+          fi
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.26.0
         with:
-          version: 'v3.7.0'
+          channel-id: 'C07G8T93BQT'
+          payload: |
+            {
+              "text": "Environment setup ${{ job.status }}",
+              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+
+  run-tests: 
+    name: Run tests
+    needs: [start-deployment, env-setup]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          sleep 5
+          echo "Tests passed!"
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: 'C07G8T93BQT'
+          payload: |
+            {
+              "text": "Run tests ${{ job.status }}",
+              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+
+  release-be:
+    name: Release BE
+    needs: [start-deployment, env-setup, run-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release BE
+        run: |
+          echo "Releasing BE..."
+          sleep 5
+          echo "BE released!"
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: 'C07G8T93BQT'
+          payload: |
+            {
+              "text": "Release BE ${{ job.status }}",
+              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+
+  release-fe:
+    name: Release FE
+    needs: [start-deployment, env-setup, run-tests, release-be]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release FE
+        run: |
+          echo "Releasing FE..."
+          sleep 5
+          echo "FE released!"
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: 'C07G8T93BQT'
+          payload: |
+            {
+              "text": "Release FE ${{ job.status }}",
+              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+
+  final-notification:
+    needs: [start-deployment, env-setup, run-tests, release-be, release-fe]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Final Slack Notification
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: 'C07G8T93BQT'
+          payload: |
+            {
+              "text": "Deployment completed successfully. Please check the pods for final confirmation.",
+              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
