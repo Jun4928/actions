@@ -73,7 +73,13 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "Environment setup ${{ job.status }}",
+              "text": "${{ job.status == 'success' && '✅' || '🚨' }} Environment setup ${{ job.status }}",
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
+                  "text": "│ Environment setup"
+                }
+              ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
             }
         env:
@@ -97,7 +103,13 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "Run tests ${{ job.status }}",
+              "text": "${{ job.status == 'success' && '✅' || '🚨' }} Run tests ${{ job.status }}",
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
+                  "text": "│ Run tests"
+                }
+              ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
             }
         env:
@@ -121,7 +133,13 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "Release BE ${{ job.status }}",
+              "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release BE ${{ job.status }}",
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
+                  "text": "│ Release BE"
+                }
+              ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
             }
         env:
@@ -145,7 +163,13 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "Release FE ${{ job.status }}",
+              "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release FE ${{ job.status }}",
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
+                  "text": "│ Release FE"
+                }
+              ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
             }
         env:
@@ -162,7 +186,13 @@ jobs:
           channel-id: 'C07G8T93BQT'
           payload: |
             {
-              "text": "Deployment completed successfully. Please check the pods for final confirmation.",
+              "text": "✅ Deployment completed successfully. Please check the pods for final confirmation.",
+              "attachments": [
+                {
+                  "color": "#36a64f",
+                  "text": "│ Deployment completed"
+                }
+              ],
               "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
             }
         env:
