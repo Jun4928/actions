@@ -1,6 +1,6 @@
 name: K8 Environment Release
 run-name: |
- [gh-${{ github.run_id }}] ${{ github.actor }} is deploying changes from ${{ github.head_ref || github.ref_name }} on ${{ inputs.environment }} 🧘‍♂️
+  [gh-${{ github.run_id }}] ${{ github.actor }} is deploying changes from ${{ github.head_ref || github.ref_name }} on ${{ inputs.environment }} 🧘‍♂️
 
 on:
   workflow_dispatch:
@@ -10,19 +10,18 @@ on:
         required: true
         type: choice
         options:
-        - staging
-        - production
+          - staging
+          - production
       run-e2e:
         required: true
         type: boolean
         description: 'Run e2e tests'
         default: true
-  
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-  
 jobs:
   start-deployment:
     runs-on: ubuntu-latest
@@ -33,46 +32,46 @@ jobs:
         with:
           channel-id: 'C07G8T93BQT'
           payload: |
-              {
-                "text": "🔄 Deployment In Progress",
-                "attachments": [
-                  {
-                    "color": "#808080",
-                    "blocks": [
-                      {
-                        "type": "section",
-                        "fields": [
-                          {
-                            "type": "mrkdwn",
-                            "text": "*Repo*\n${{ github.repository }}"
-                          },
-                          {
-                            "type": "mrkdwn",
-                            "text": "*Env*\n${{ inputs.environment }}"
-                          },
-                          {
-                            "type": "mrkdwn",
-                            "text": "*Branch*\n${{ github.head_ref || github.ref_name }}"
-                          },
-                          {
-                            "type": "mrkdwn",
-                            "text": "*Triggered by*\n${{ github.actor }}"
-                          },
-                        ]
-                      },
-                      {
-                        "type": "section",
-                        "fields": [
-                          {
-                            "type": "mrkdwn",
-                            "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                          }
-                        ]
-                      },
-                    ]
-                  }
-                ]
-              }
+            {
+              "text": "🔄 Deployment In Progress",
+              "attachments": [
+                {
+                  "color": "#808080",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Repo*\n${{ github.repository }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Env*\n${{ inputs.environment }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Branch*\n${{ github.head_ref || github.ref_name }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Triggered by*\n${{ github.actor }}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
     outputs:
@@ -113,7 +112,7 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
 
-  run-tests: 
+  run-tests:
     name: Run tests
     needs: [start-deployment, env-setup]
     runs-on: ubuntu-latest
@@ -221,7 +220,7 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
-    
+
   update-slack-notification:
     needs: [start-deployment, env-setup, run-tests, release-be, release-fe]
     runs-on: ubuntu-latest
@@ -238,7 +237,7 @@ jobs:
               "text": "${{ job.status == 'success' && '✅ Deployment done successfully' || job.status == 'failure' && '🚨 Deployment failed' || '🔄 Deployment In Progress' }} for ${{ inputs.environment }} environment",
               "attachments": [
                 {
-                  "color": "${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#ff0000' || '#808080' }}",
+                  "color": "#808080",
                   "blocks": [
                     {
                       "type": "section",
@@ -258,7 +257,7 @@ jobs:
                         {
                           "type": "mrkdwn",
                           "text": "*Triggered by*\n${{ github.actor }}"
-                        },
+                        }
                       ]
                     },
                     {
@@ -269,11 +268,10 @@ jobs:
                           "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                         }
                       ]
-                    },
+                    }
                   ]
                 }
               ]
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
-
