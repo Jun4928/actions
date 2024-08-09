@@ -222,8 +222,24 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
 
+  determine-status:
+    needs: [env-setup, run-tests, release-be, release-fe]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Determine workflow status
+        id: status
+        run: |
+          if [[ ${{ contains(needs.*.result, 'failure') }} == 'true' ]]; then
+            echo "workflow_status=failure" >> $GITHUB_OUTPUT
+          else
+            echo "workflow_status=success" >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      workflow_status: ${{ steps.status.outputs.workflow_status }}
+
   update-slack-notification:
-    needs: [start-deployment, env-setup, run-tests, release-be, release-fe]
+    needs: [start-deployment, determine-status]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -235,10 +251,10 @@ jobs:
           update-ts: ${{ needs.start-deployment.outputs.slack_message_ts }}
           payload: |
             {
-              "text": "${{ job.status == 'success' && '✅ Deployment done successfully' || job.status == 'failure' && '🚨 Deployment failed' || '🔄 Deployment In Progress' }} for ${{ inputs.environment }} environment",
+              "text": "${{ needs.determine-status.outputs.workflow_status == 'success' && '✅ Deployment done successfully' || '🚨 Deployment failed' }} for ${{ inputs.environment }} environment",
               "attachments": [
                 {
-                  "color": "${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#ff0000' || '#808080' }}",
+                  "color": "${{ needs.determine-status.outputs.workflow_status == 'success' && '#36a64f' || '#ff0000' }}",
                   "blocks": [
                     {
                       "type": "section",
