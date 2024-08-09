@@ -237,7 +237,7 @@ jobs:
               "text": "${{ job.status == 'success' && '✅ Deployment done successfully' || job.status == 'failure' && '🚨 Deployment failed' || '🔄 Deployment In Progress' }} for ${{ inputs.environment }} environment",
               "attachments": [
                 {
-                  "color": "#808080",
+                  "color": "${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#ff0000' || '#808080' }}",
                   "blocks": [
                     {
                       "type": "section",
