@@ -52,6 +52,7 @@ jobs:
   notify-env-setp:
     needs: [start-notification, env-setup]
     uses: ./.github/workflows/slack-notify-comment.yml
+    if: always()
     with:
       job-name: 'Environment setup'
       status: ${{ needs.env-setup.result}}
@@ -73,6 +74,7 @@ jobs:
   notify-run-tests:
     needs: [start-notification, run-tests]
     uses: ./.github/workflows/slack-notify-comment.yml
+    if: always()
     with:
       job-name: 'Run tests'
       status: ${{ needs.run-tests.result }}
@@ -94,6 +96,7 @@ jobs:
   notify-release-be:
     needs: [start-notification, release-be]
     uses: ./.github/workflows/slack-notify-comment.yml
+    if: always()
     with:
       job-name: 'Release BE'
       status: ${{ needs.release-be.result }}
@@ -115,6 +118,7 @@ jobs:
   notify-release-fe:
     needs: [start-notification, release-fe]
     uses: ./.github/workflows/slack-notify-comment.yml
+    if: always()
     with:
       job-name: 'Release FE'
       status: ${{ needs.release-fe.result }}
@@ -141,6 +145,7 @@ jobs:
   end-notification:
     needs: [start-notification, determine-status]
     uses: ./.github/workflows/slack-notify-post.yml
+    if: always()
     with:
       message-type: end
       environment: ${{ inputs.environment }}
