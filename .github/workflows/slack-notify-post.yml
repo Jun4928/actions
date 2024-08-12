@@ -59,7 +59,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.26.0
         with:
           channel-id: ${{ inputs.slack-channel-id }}
-          update-ts: ${{ inputs.slack-message-ts}}
+          update-ts: ${{ inputs.slack-message-ts }}
           payload: |
             {
               "text": "${{ steps.message.outputs.text }} for ${{ inputs.environment }} environment",
