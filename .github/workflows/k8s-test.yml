@@ -49,23 +49,15 @@ jobs:
             exit 1
           fi
 
-      - name: Notify Slack
-        if: always()
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          channel-id: 'C07G8T93BQT'
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "text": "${{ job.status == 'success' && '✅' || '🚨' }} Environment setup ${{ job.status }}"
-                }
-              ],
-              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+  notify-env-setp:
+    needs: [start-notification, env-setup]
+    uses: ./.github/workflows/slack-notify-comment.yml
+    with:
+      job-name: 'Environment setup'
+      status: ${{ needs.env-setup.result}}
+      slack-message-ts: ${{ needs.start-notification.outputs.slack-message-ts }}
+      slack-channel-id: 'C07G8T93BQT'
+    secrets: inherit
 
   run-tests:
     name: Run tests
@@ -78,23 +70,15 @@ jobs:
           sleep 5
           echo "Tests passed!"
 
-      - name: Notify Slack
-        if: always()
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          channel-id: 'C07G8T93BQT'
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "text": "${{ job.status == 'success' && '✅' || '🚨' }} Run tests ${{ job.status }}"
-                }
-              ],
-              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+  notify-run-tests:
+    needs: [start-notification, run-tests]
+    uses: ./.github/workflows/slack-notify-comment.yml
+    with:
+      job-name: 'Run tests'
+      status: ${{ needs.run-tests.result }}
+      slack-message-ts: ${{ needs.start-notification.outputs.slack-message-ts }}
+      slack-channel-id: 'C07G8T93BQT'
+    secrets: inherit
 
   release-be:
     name: Release BE
@@ -107,23 +91,15 @@ jobs:
           sleep 5
           echo "BE released!"
 
-      - name: Notify Slack
-        if: always()
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          channel-id: 'C07G8T93BQT'
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release BE ${{ job.status }}"
-                }
-              ],
-              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+  notify-release-be:
+    needs: [start-notification, release-be]
+    uses: ./.github/workflows/slack-notify-comment.yml
+    with:
+      job-name: 'Release BE'
+      status: ${{ needs.release-be.result }}
+      slack-message-ts: ${{ needs.start-notification.outputs.slack-message-ts }}
+      slack-channel-id: 'C07G8T93BQT'
+    secrets: inherit
 
   release-fe:
     name: Release FE
@@ -136,45 +112,15 @@ jobs:
           sleep 5
           echo "FE released!"
 
-      - name: Notify Slack
-        if: always()
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          channel-id: 'C07G8T93BQT'
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "${{ job.status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release FE ${{ job.status }}"
-                }
-              ],
-              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
-
-  final-notification:
-    needs: [start-notification, env-setup, run-tests, release-be, release-fe]
-    runs-on: ubuntu-latest
-    if: success()
-    steps:
-      - name: Final Slack Notification
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          channel-id: 'C07G8T93BQT'
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#36a64f",
-                  "text": "✅ Deployment completed successfully. Please check the pods for final confirmation."
-                }
-              ],
-              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+  notify-release-fe:
+    needs: [start-notification, release-fe]
+    uses: ./.github/workflows/slack-notify-comment.yml
+    with:
+      job-name: 'Release FE'
+      status: ${{ needs.release-fe.result }}
+      slack-message-ts: ${{ needs.start-notification.outputs.slack-message-ts }}
+      slack-channel-id: 'C07G8T93BQT'
+    secrets: inherit
 
   determine-status:
     needs: [env-setup, run-tests, release-be, release-fe]
