@@ -248,7 +248,7 @@ jobs:
           if [[ "${{ inputs.environment }}" == "staging" ]]; then
             echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-gjn5q/explorer/apps.deployment" >> $GITHUB_OUTPUT
           elif [[ "${{ inputs.environment }}" == "production" ]]; then
-            echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-gjn5q/explorer/apps.deployment" >> $GITHUB_OUTPUT
+            echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-d5bhw/explorer/apps.deployment" >> $GITHUB_OUTPUT
           else
             echo "rancher_url=N/A" >> $GITHUB_OUTPUT
           fi
