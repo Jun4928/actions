@@ -242,6 +242,16 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
+      - name: Determine message content
+        id: message
+        run: |
+          if [[ "${{ inputs.environment }}" == "staging" ]]; then
+            echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-gjn5q/explorer/apps.deployment" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.environment }}" == "production" ]]; then
+            echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-gjn5q/explorer/apps.deployment" >> $GITHUB_OUTPUT
+          else
+            echo "rancher_url=N/A" >> $GITHUB_OUTPUT
+          fi
       - name: Update Slack Notification
         uses: slackapi/slack-github-action@v1.26.0
         if: always()
@@ -282,6 +292,10 @@ jobs:
                         {
                           "type": "mrkdwn",
                           "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Confirm the pods on Rancher*\n[${{ inputs.environment }}](${{ steps.message.outputs.rancher_url }})"
                         }
                       ]
                     }
