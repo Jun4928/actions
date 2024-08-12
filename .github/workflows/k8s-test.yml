@@ -23,62 +23,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  start-deployment:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Post to a Slack channel
-        id: slack
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          channel-id: 'C07G8T93BQT'
-          payload: |
-            {
-              "text": "🔄 Deployment In Progress",
-              "attachments": [
-                {
-                  "color": "#808080",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "fields": [
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Repo*\n${{ github.repository }}"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Env*\n${{ inputs.environment }}"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Branch*\n${{ github.head_ref || github.ref_name }}"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Triggered by*\n${{ github.actor }}"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "section",
-                      "fields": [
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
-    outputs:
-      slack_message_ts: ${{ steps.slack.outputs.ts }}
+  start-notification:
+    uses: ./.github/workflows/slack-notify-post.yml
+    with:
+      message-type: start
+      environment: ${{ inputs.environment }}
+      status: 'in-progress'
+      slack-channel-id: 'C07G8T93BQT'
+    secrets: inherit
 
   env-setup:
-    needs: start-deployment
+    needs: [start-notification]
     runs-on: ubuntu-latest
     env:
       BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -107,14 +62,14 @@ jobs:
                   "text": "${{ job.status == 'success' && '✅' || '🚨' }} Environment setup ${{ job.status }}"
                 }
               ],
-              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
 
   run-tests:
     name: Run tests
-    needs: [start-deployment, env-setup]
+    needs: [start-notification, env-setup]
     runs-on: ubuntu-latest
     steps:
       - name: Run tests
@@ -136,14 +91,14 @@ jobs:
                   "text": "${{ job.status == 'success' && '✅' || '🚨' }} Run tests ${{ job.status }}"
                 }
               ],
-              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
 
   release-be:
     name: Release BE
-    needs: [start-deployment, env-setup, run-tests]
+    needs: [start-notification, env-setup, run-tests]
     runs-on: ubuntu-latest
     steps:
       - name: Release BE
@@ -165,14 +120,14 @@ jobs:
                   "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release BE ${{ job.status }}"
                 }
               ],
-              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
 
   release-fe:
     name: Release FE
-    needs: [start-deployment, env-setup, run-tests, release-be]
+    needs: [start-notification, env-setup, run-tests, release-be]
     runs-on: ubuntu-latest
     steps:
       - name: Release FE
@@ -194,13 +149,13 @@ jobs:
                   "text": "${{ job.status == 'success' && '✅' || '🚨' }} Release FE ${{ job.status }}"
                 }
               ],
-              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
 
   final-notification:
-    needs: [start-deployment, env-setup, run-tests, release-be, release-fe]
+    needs: [start-notification, env-setup, run-tests, release-be, release-fe]
     runs-on: ubuntu-latest
     if: success()
     steps:
@@ -216,7 +171,7 @@ jobs:
                   "text": "✅ Deployment completed successfully. Please check the pods for final confirmation."
                 }
               ],
-              "thread_ts": "${{ needs.start-deployment.outputs.slack_message_ts }}"
+              "thread_ts": "${{ needs.start-notification.outputs.slack-message-ts }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
@@ -235,73 +190,15 @@ jobs:
             echo "workflow_status=success" >> $GITHUB_OUTPUT
           fi
     outputs:
-      workflow_status: ${{ steps.status.outputs.workflow_status }}
+      workflow-status: ${{ steps.status.outputs.workflow_status }}
 
-  update-slack-notification:
-    needs: [start-deployment, determine-status]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Determine message content
-        id: message
-        run: |
-          if [[ "${{ inputs.environment }}" == "staging" ]]; then
-            echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-gjn5q/explorer/apps.deployment" >> $GITHUB_OUTPUT
-          elif [[ "${{ inputs.environment }}" == "production" ]]; then
-            echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-d5bhw/explorer/apps.deployment" >> $GITHUB_OUTPUT
-          else
-            echo "rancher_url=N/A" >> $GITHUB_OUTPUT
-          fi
-      - name: Update Slack Notification
-        uses: slackapi/slack-github-action@v1.26.0
-        if: always()
-        with:
-          channel-id: 'C07G8T93BQT'
-          update-ts: ${{ needs.start-deployment.outputs.slack_message_ts }}
-          payload: |
-            {
-              "text": "${{ needs.determine-status.outputs.workflow_status == 'success' && '✅ Deployment done successfully' || '🚨 Deployment failed' }} for ${{ inputs.environment }} environment",
-              "attachments": [
-                {
-                  "color": "${{ needs.determine-status.outputs.workflow_status == 'success' && '#36a64f' || '#ff0000' }}",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "fields": [
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Repo*\n${{ github.repository }}"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Env*\n${{ inputs.environment }}"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Branch*\n${{ github.head_ref || github.ref_name }}"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Triggered by*\n${{ github.actor }}"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "section",
-                      "fields": [
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Confirm the pods on Rancher*\n<${{ steps.message.outputs.rancher_url }}|${{ inputs.environment }}>"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
+  end-notification:
+    needs: [start-notification, determine-status]
+    uses: ./.github/workflows/slack-notify-post.yml
+    with:
+      message-type: end
+      environment: ${{ inputs.environment }}
+      status: ${{ needs.determine-status.outputs.workflow-status }}
+      slack-message-ts: ${{ needs.start-notification.outputs.slack-message-ts }}
+      slack-channel-id: 'C07G8T93BQT'
+    secrets: inherit

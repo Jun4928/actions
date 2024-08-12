@@ -1,0 +1,109 @@
+name: Slack Notification
+
+on:
+  workflow_call:
+    inputs:
+      message-type:
+        required: true
+        type: string
+        description: 'Type of message = start | end'
+      environment:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+        default: 'in-progress'
+      slack-channel-id:
+        required: true
+        type: string
+      slack-message-ts:
+        required: false
+        type: string
+        description: 'Timestamp of the message to update (optional)'
+    outputs:
+      slack-message-ts:
+        description: 'Slack message timestamp'
+        value: ${{ jobs.notify-post.outputs.slack-message-ts }}
+
+jobs:
+  notify-post:
+    runs-on: ubuntu-latest
+    outputs:
+      slack-message-ts: ${{ steps.slack.outputs.ts }}
+    steps:
+      - name: Determine message content
+        id: message
+        run: |
+          if [[ "${{ inputs.message-type }}" == "start" ]]; then
+            echo "text=🔄 Deployment In Progress" >> $GITHUB_OUTPUT
+            echo "color=#808080" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.status }}" == "success" ]]; then
+            echo "text=✅ Deployment done successfully" >> $GITHUB_OUTPUT
+            echo "color=#36a64f" >> $GITHUB_OUTPUT
+          else
+            echo "text=🚨 Deployment failed" >> $GITHUB_OUTPUT
+            echo "color=#ff0000" >> $GITHUB_OUTPUT
+          fi
+
+          if [[ "${{ inputs.environment }}" == "staging" ]]; then
+            echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-gjn5q/explorer/apps.deployment" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.environment }}" == "production" ]]; then
+            echo "rancher_url=https://rancher.bunch.capital/dashboard/c/c-d5bhw/explorer/apps.deployment" >> $GITHUB_OUTPUT
+          else
+            echo "rancher_url=N/A" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack Notification
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: ${{ inputs.slack-channel-id }}
+          update-ts: ${{ inputs.slack-message-ts}}
+          payload: |
+            {
+              "text": "${{ steps.message.outputs.text }} for ${{ inputs.environment }} environment",
+              "attachments": [
+                {
+                  "color": "${{ steps.message.outputs.color }}",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Repo*\n${{ github.repository }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Env*\n${{ inputs.environment }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Branch*\n${{ github.head_ref || github.ref_name }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Triggered by*\n${{ github.actor }}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Repo Action URL*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Confirm the pods on Rancher*\n<${{ steps.message.outputs.rancher_url }}|${{ inputs.environment }}>"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ACTIONS_SLACK_BOT_TOKEN }}
