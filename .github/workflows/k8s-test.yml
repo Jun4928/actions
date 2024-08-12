@@ -295,7 +295,7 @@ jobs:
                         },
                         {
                           "type": "mrkdwn",
-                          "text": "*Confirm the pods on Rancher*\n[${{ inputs.environment }}](${{ steps.message.outputs.rancher_url }})"
+                          "text": "*Confirm the pods on Rancher*\n<${{ steps.message.outputs.rancher_url }}|${{ inputs.environment }}>"
                         }
                       ]
                     }
