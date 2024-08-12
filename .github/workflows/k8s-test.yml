@@ -49,7 +49,7 @@ jobs:
             exit 1
           fi
 
-  notify-env-setp:
+  notify-env-setup:
     needs: [start-notification, env-setup]
     uses: ./.github/workflows/slack-notify-comment.yml
     if: always() && needs.env-setup.result != 'skipped'
