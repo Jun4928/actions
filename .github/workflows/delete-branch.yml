@@ -1,0 +1,14 @@
+name: Delete Bracnh Test
+run-name: 🚿 ${{ github.actor }} 🚀
+
+on:
+  workflow_dispatch:
+
+jobs:
+  delete-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: use script
+        id: deletion
+        run: |
+          ./scripts/delete-branch.sh
