@@ -1,4 +1,4 @@
-name: Delete Bracnh Test
+name: Delete Branch Test
 run-name: 🚿 ${{ github.actor }} 🚀
 
 on:
@@ -10,8 +10,18 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: use script
+      - name: Use script
         id: deletion
         run: |
+          chmod +x ./scripts/branchCleanup.sh
           ./scripts/branchCleanup.sh
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v2
+        with:
+          name: debug-logs
+          path: |
+            step*.log
