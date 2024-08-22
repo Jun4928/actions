@@ -20,6 +20,10 @@ echo "Step 4: Removing 'remotes/origin/' prefix from branch names"
 step4_output=$(echo "$step3_output" | sed 's/remotes\/origin\///')
 echo "$step4_output"
 
-# # Step 5: Delete each branch on the remote
-# echo "Step 5: Deleting the branches on remote"
-# echo "$step4_output" | xargs -L1 -I {} bash -c 'echo "Deleting branch {}"; git push origin --delete {} --no-verify'
+# Step 5: Delete each branch on the remote
+echo "Step 5: Deleting the branches on remote"
+for branch in $step4_output; do
+  echo "Deleting branch $branch"
+  git push origin --delete "$branch" --no-verify
+done
+
