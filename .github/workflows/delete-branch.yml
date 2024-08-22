@@ -7,8 +7,8 @@ on:
 jobs:
   delete-branches:
     runs-on: ubuntu-latest
-    # permissions:
-    #   contents: write
+    permissions:
+      contents: write
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
